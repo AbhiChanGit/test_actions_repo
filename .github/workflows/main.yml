@@ -16,12 +16,13 @@ jobs:
               uses: actions/checkout@v2
 
             - name: Get Unused Branches
-              uses: hpdocker-io/github-actions-delete-abandoned-branches@v2
+              uses: phpdocker-io/github-actions-delete-abandoned-branches@v2
               id: Unused_branches
               with:
                 github_token: ${{ github.token }}
                 last_commit_age_days: 90
                 allowed_prefixes: 'delete/'
+                dry_run: yes
 
             - name: Create pull request for branch deletion
               uses: peter-evans/create-pull-request@v7

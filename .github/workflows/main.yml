@@ -17,7 +17,7 @@ jobs:
 
             - name: Get unused Branches
               uses: phpdocker-io/github-actions-delete-abandoned-branches@v2
-              id: Unused_branches
+              id: unused_branches
               with:
                 github_token: ${{ github.token }}
                 last_commit_age_days: 90

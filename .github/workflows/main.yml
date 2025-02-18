@@ -15,7 +15,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v2
 
-            - name: Get Unused Branches
+            - name: Get unused Branches
               uses: phpdocker-io/github-actions-delete-abandoned-branches@v2
               id: Unused_branches
               with:
@@ -43,4 +43,4 @@ jobs:
                     {% endfor %}
 
             - name: Get output
-              run: "echo 'Deleted branches: ${{ steps.delete_branches.outputs.deleted_branches }}'"
+              run: "echo 'Deleted branches: ${{ steps.unused_branches.outputs.deleted_branches }}'"

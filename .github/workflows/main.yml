@@ -1,0 +1,44 @@
+name: Delete abandoned branches
+
+on:
+    # Run weekly on Sunday midnight
+    schedule:
+        - cron: '0 0 * * 0'
+
+    # Allow workflow to be manually run from the GitHub UI
+    workflow_dispatch:
+
+jobs:
+    cleanup_old_branches:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+
+            - name: Get Unused Branches
+              uses: hpdocker-io/github-actions-delete-abandoned-branches@v2
+              id: Unused_branches
+              with:
+                github_token: ${{ github.token }}
+                last_commit_age_days: 90
+
+            - name: Create pull request for branch deletion
+              uses: peter-evans/create-pull-request@v7
+              with:
+                token: ${{ github.token }}
+                commit-message: 'Delete abandoned branches'
+                branch: delete-branches-${{ github.sha }}
+                title: 'Delete abandoned branches'
+                body: |
+                    This pull request proposes to delete the following abandoned branches:
+
+                    ${{ steps.unused_branches.outputs.deleted_branches }}
+
+                    | Branch Name | Last Commit Date | Last Commit Message | Last Updated |
+                    |-------------|------------------|---------------------|--------------|
+                    {% for branch in steps.unused_branches.outputs.deleted_branches %}
+                    | {{ branch.name }} | {{ branch.last_commit_date }} | {{ branch.last_commit_message }} | {{ branch.last_updated }} |
+                    {% endfor %}
+
+            - name: Get output
+              run: "echo 'Deleted branches: ${{ steps.delete_branches.outputs.deleted_branches }}'"

@@ -40,10 +40,9 @@ jobs:
                   
                   | Branch Name | Last Commit Date | Last Commit Message | Last Updated |
                   |-------------|------------------|---------------------|--------------|
-                  " \
-                        --base main \
-                        --head delete-branches-${{ github.sha }} \
-                        --label cleanup
+                  {% for branch in steps.unused_branches.outputs.deleted_branches %}
+                  | {{ branch.name }} | {{ branch.last_commit_date }} | {{ branch.last_commit_message }} | {{ branch.last_updated }} |
+                  {% endfor %}" --base main \ --head delete-branches-${{ github.sha }} \ --label cleanup
 
             - name: Get output
               run: "echo 'Deleted branches: ${{ steps.unused_branches.outputs.deleted_branches }}'"

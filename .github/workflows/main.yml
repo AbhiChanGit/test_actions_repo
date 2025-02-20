@@ -22,15 +22,16 @@ jobs:
                 github_token: ${{ github.token }}
                 last_commit_age_days: 0
                 dry_run: yes
-
+                
             - name: Prefix branches with delete/
               run: |
-                for branch in ${{ steps.unused_branches.outputs.deleted_branches }}
-                do
-                    git branch -m "$branch" "delete/$branch"
-                    git push origin --delete "$branch"
-                    git push origin "delete/$branch"
+                branches=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed 's/[][]//g; s/,/ /g')
+                for branch in $branches; do
+                  git branch -m "$branch" "delete/$branch"
+                  git push origin --delete "$branch"
+                  git push origin "delete/$branch"
                 done
+
 
             - name: Create pull request for branch deletion
               uses: peter-evans/create-pull-request@v7

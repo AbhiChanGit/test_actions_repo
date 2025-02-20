@@ -27,6 +27,7 @@ jobs:
               run: |
                 branches=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed "s/[][]//g; s/,/ /g; s/'//g")
                 for branch in $branches; do
+                  branch=$(echo "$branch" | tr -d "'")
                   git branch -m "$branch" "delete/$branch"
                   git push origin --delete "$branch"
                   git push origin "delete/$branch"

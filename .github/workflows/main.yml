@@ -28,6 +28,12 @@ jobs:
                 last_commit_age_days: 0
                 dry_run: yes
 
+            - name: Create branch for PR
+              run: |
+                git checkout -b delete-branches-${{ github.sha }}
+                git commit --allow-empty -m "Prepare PR for abandoned branch deletion"
+                git push origin delete-branches-${{ github.sha }}
+
             - name: Create pull request for branch deletion with gh CLI
               env:
                 GH_TOKEN: ${{ github.token }}

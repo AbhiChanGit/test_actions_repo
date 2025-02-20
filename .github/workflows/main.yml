@@ -43,8 +43,7 @@ jobs:
                   | {{ branch.name }} | {{ branch.last_commit_date }} | {{ branch.last_commit_message }} | {{ branch.last_updated }} |
                   {% endfor %}" \
                   --base main \
-                  --head delete-branches-${{ github.sha }} \
-                  --label cleanup
+                  --head delete-branches-${{ github.sha }}
                   
             - name: Get output
               run: "echo 'Deleted branches: ${{ steps.unused_branches.outputs.deleted_branches }}'"

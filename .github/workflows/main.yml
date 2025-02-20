@@ -15,6 +15,11 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v2
 
+            - name: Configure Git user
+              run: |
+                git config --global user.name "AbhiChanGit"
+                git config --global user.email "abhishek.23.01.2005@gmail.com"
+
             - name: Get unused Branches
               uses: phpdocker-io/github-actions-delete-abandoned-branches@v2
               id: unused_branches

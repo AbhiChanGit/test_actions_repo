@@ -34,15 +34,17 @@ jobs:
               run: |
                 gh pr create \
                   --title "Delete abandoned branches" \
+                  --base main \ 
+                  --head delete-branches-${{ github.sha }} \ 
+                  --label cleanup \
                   --body "This pull request proposes to delete the following abandoned branches:
-            
                   ${{ steps.unused_branches.outputs.deleted_branches }}
                   
                   | Branch Name | Last Commit Date | Last Commit Message | Last Updated |
                   |-------------|------------------|---------------------|--------------|
                   {% for branch in steps.unused_branches.outputs.deleted_branches %}
                   | {{ branch.name }} | {{ branch.last_commit_date }} | {{ branch.last_commit_message }} | {{ branch.last_updated }} |
-                  {% endfor %}" --base main \ --head delete-branches-${{ github.sha }} \ --label cleanup
-
+                  {% endfor %}"
+                  
             - name: Get output
               run: "echo 'Deleted branches: ${{ steps.unused_branches.outputs.deleted_branches }}'"

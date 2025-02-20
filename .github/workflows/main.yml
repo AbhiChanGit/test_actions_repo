@@ -26,6 +26,7 @@ jobs:
             - name: Create branch for PR
               run: |
                 git checkout -b delete-branches-${{ github.sha }}
+                git commit --allow-empty -m "Prepare PR for deleting abandoned branches"
                 git push origin delete-branches-${{ github.sha }}
 
             - name: Create pull request for branch deletion

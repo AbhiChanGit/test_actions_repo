@@ -25,7 +25,8 @@ jobs:
 
             - name: Prefix branches with delete/
               run: |
-                for branch in $(echo ${{ steps.unused_branches.outputs.deleted_branches }}; do
+                for branch in ${{ steps.unused_branches.outputs.deleted_branches }}
+                do
                     git branch -m "$branch" "delete/$branch"
                     git push origin --delete "$branch"
                     git push origin "delete/$branch"

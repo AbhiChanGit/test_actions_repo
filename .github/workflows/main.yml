@@ -35,13 +35,30 @@ jobs:
 
             - name: Prefix branches with delete/
               run: |
-                # Convert the deleted branches array to valid JSON by replacing single quotes with double quotes
-                branches_json=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed "s/'/\"/g")
-                echo "Branches JSON: $branches_json"
-                for branch in $(echo "$branches_json" | jq -r '.[]'); do
-                  echo "Processing branch: $branch"
-                  git push origin $branch:refs/heads/delete/$branch
-                  git push origin --delete $branch
+                # Clean the deleted branches output: remove square brackets, commas, and single quotes.
+                deleted=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed "s/[][]//g; s/,/ /g; s/'//g")
+                echo "Deleted branches: $deleted"
+                
+                # Get a list of all remote branch names from origin (exclude HEAD and trim spaces)
+                remote_branches=$(git branch -r | sed 's/ *origin\///g' | grep -v "HEAD")
+                echo "Remote branches: $remote_branches"
+                
+                # For each remote branch, check if it is in the deleted branches list
+                for branch in $remote_branches; do
+                  echo "Checking branch: $branch"
+                  # Pad with spaces so that we don't get false positive substring matches
+                  if [[ " $deleted " == *" $branch "* ]]; then
+                    echo "Branch '$branch' is marked for deletion. Renaming to delete/$branch..."
+                    # Check out the branch (or fetch if not available locally)
+                    git checkout "$branch" || (git fetch origin "$branch:$branch" && git checkout "$branch")
+                    # Rename the local branch by prefixing with "delete/"
+                    git branch -m "delete/$branch"
+                    # Delete original branch on remote and push the renamed branch
+                    git push origin --delete "$branch"
+                    git push origin "delete/$branch"
+                  else
+                    echo "Branch '$branch' is not marked for deletion."
+                  fi
                 done
 
             - name: Create branch for PR

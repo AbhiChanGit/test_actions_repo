@@ -33,27 +33,23 @@ jobs:
                 last_commit_age_days: 0
                 dry_run: yes
 
-            - name: Prefix branches with delete/
+            - name: Prefix branches with delete
               run: |
-                # Clean the deleted branches output: remove square brackets, commas, and single quotes.
+                # List of branches to be deleted
                 deleted=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed "s/[][]//g; s/,/ /g; s/'//g")
                 echo "Deleted branches: $deleted"
                 
-                # Get a list of all remote branch names from origin (exclude HEAD and trim spaces)
+                # List of remote branches
                 remote_branches=$(git branch -r | sed 's/ *origin\///g' | grep -v "HEAD")
                 echo "Remote branches: $remote_branches"
                 
                 # For each remote branch, check if it is in the deleted branches list
                 for branch in $remote_branches; do
                   echo "Checking branch: $branch"
-                  # Pad with spaces so that we don't get false positive substring matches
                   if [[ " $deleted " == *" $branch "* ]]; then
                     echo "Branch '$branch' is marked for deletion. Renaming to delete/$branch..."
-                    # Check out the branch (or fetch if not available locally)
-                    git checkout "$branch" || (git fetch origin "$branch:$branch" && git checkout "$branch")
-                    # Rename the local branch by prefixing with "delete/"
+                    git checkout "$branch"
                     git branch -m "delete/$branch"
-                    # Delete original branch on remote and push the renamed branch
                     git push origin --delete "$branch"
                     git push origin "delete/$branch"
                   else

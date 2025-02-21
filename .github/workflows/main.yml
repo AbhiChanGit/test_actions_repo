@@ -14,69 +14,83 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
-              with:
-                  fetch-depth: 0
 
             - name: Configure Git user
               run: |
                 git config --global user.name "AbhiChanGit"
                 git config --global user.email "abhishek.23.01.2005@gmail.com"
 
-            - name: Get unused Branches
+            - name: Get Unused Branches
               uses: phpdocker-io/github-actions-delete-abandoned-branches@v2
               id: unused_branches
               with:
                 github_token: ${{ github.token }}
-                last_commit_age_days: 0
+                last_commit_age_days: 90
                 dry_run: yes
 
-            - name: Prefix branches with delete
+            - name: Get Remote Branches Array
+              id: remote_branches
               run: |
-                # List of branches to be deleted
+                # Get the deleted branches list.
                 deleted=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed "s/[][]//g; s/,/ /g; s/'//g")
-                echo "Deleted branches: $deleted"
                 
-                # List of remote branches
-                remote_branches=$(git branch -r | sed 's/ *origin\///g' | grep -v "HEAD")
-                echo "Remote branches: $remote_branches"
-                
-                # For each remote branch, check if it is in the deleted branches list
-                for branch in $remote_branches; do
-                  echo "Checking branch: $branch"
+                # Get full remote branches list and filter only those present in the deleted list.
+                matching_branches=""
+                for branch in $(git branch -r | sed 's/ *origin\///g' | grep -v "HEAD");
+                do
                   if [[ " $deleted " == *" $branch "* ]]; then
-                    echo "Branch '$branch' is marked for deletion. Renaming to delete/$branch..."
-                    git checkout "$branch"
-                    git branch -m "delete/$branch"
-                    git push origin --delete "$branch"
-                    git push origin "delete/$branch"
-                  else
-                    echo "Branch '$branch' is not marked for deletion."
+                    matching_branches="$matching_branches $branch"
                   fi
                 done
+                echo "Matching branches for deletion: $matching_branches"
+                echo "::set-output name=branches::${matching_branches}"
 
-            - name: Create branch for Pull Request
+            - name: Create branch for PR
               run: |
                 git checkout -b delete-branches-${{ github.sha }}
                 git commit --allow-empty -m "Prepare PR for abandoned branch deletion"
                 git push origin delete-branches-${{ github.sha }}
 
-            - name: Create Pull Request for branch deletion
+            - name: Create pull request for branch deletion with gh CLI
               env:
                 GH_TOKEN: ${{ github.token }}
               run: |
+                # Get the list of branches to be deleted from the remote array output.
+                branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
+                echo "Branches to delete (from output): $branches_to_delete"
+                
+                # Build a Markdown table with details of each branch.
+                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Last Updated |\n|-------------|------------------|---------------------|--------------|"
+                for branch in $branches_to_delete; do
+                  renamed_branch="delete/$branch"
+                  commit_date=$(git log -1 --format="%cd" "$renamed_branch" 2>/dev/null || echo "N/A")
+                  commit_msg=$(git log -1 --format="%s" "$renamed_branch" 2>/dev/null || echo "N/A")
+                  last_updated="$commit_date"
+                  pr_table="${pr_table}\n| ${renamed_branch} | ${commit_date} | ${commit_msg} | ${last_updated} |"
+                done
+                
+                pr_body="This pull request proposes to delete the following abandoned branches:\n\n$branches_to_delete\n\n${pr_table}"
+                echo -e "$pr_body" > pr_body.txt
+                cat pr_body.txt  # For debugging; remove when confirmed.
+                
                 gh pr create \
                   --title "Delete abandoned branches" \
-                  --body "This pull request proposes to delete the following abandoned branches:
-
-                  ${{ steps.unused_branches.outputs.deleted_branches }}
-                  | Branch Name | Last Commit Date | Last Commit Message | Last Updated |
-                  |-------------|------------------|---------------------|--------------|
-                  {% for branch in steps.unused_branches.outputs.deleted_branches %}
-                  | {{ branch.name }} | {{ branch.last_commit_date }} | {{ branch.last_commit_message }} | {{ branch.last_updated }} |
-                  {% endfor %}" \
+                  --body "$(cat pr_body.txt)" \
                   --base main \
                   --head delete-branches-${{ github.sha }}
 
-                  
+            - name: Prefix branches with delete
+              run: |
+                branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
+                echo "Branches to delete (from output): $branches_to_delete"
+                
+                for branch in $branches_to_delete; do
+                  echo "Renaming branch: $branch -> delete/$branch"
+                  git checkout "$branch" || (git fetch origin "$branch:$branch" && git checkout "$branch")
+                  git branch -m "delete/$branch"
+                  git push origin --delete "$branch"
+                  git push origin "delete/$branch"
+                done
+
             - name: Get output
-              run: "echo 'Deleted branches: ${{ steps.unused_branches.outputs.deleted_branches }}'"
+              run: "echo 'Branches queued for Deletion: ${{ steps.unused_branches.outputs.deleted_branches }}'"

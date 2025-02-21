@@ -54,7 +54,7 @@ jobs:
                   fi
                 done
 
-            - name: Create branch for PR
+            - name: Create branch for pull request
               run: |
                 git checkout -b delete-branches-${{ github.sha }}
                 git commit --allow-empty -m "Prepare PR for abandoned branch deletion"

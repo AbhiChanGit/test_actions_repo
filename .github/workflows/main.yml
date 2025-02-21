@@ -25,7 +25,7 @@ jobs:
               id: unused_branches
               with:
                 github_token: ${{ github.token }}
-                last_commit_age_days: 90
+                last_commit_age_days: 0
                 dry_run: yes
 
             - name: Get Remote Branches Array

@@ -31,19 +31,24 @@ jobs:
             - name: Get Remote Branches Array
               id: remote_branches
               run: |
-                # Get the deleted branches list.
+                # Clean the deleted branches list from the unused_branches output.
                 deleted=$(echo "${{ steps.unused_branches.outputs.deleted_branches }}" | sed "s/[][]//g; s/,/ /g; s/'//g")
+                echo "Deleted branches (cleaned): '$deleted'"
                 
-                # Get full remote branches list and filter only those present in the deleted list.
                 matching_branches=""
-                for branch in $(git branch -r | sed 's/ *origin\///g' | grep -v "HEAD");
-                do
+                # Iterate over remote branches (removing the 'origin/' prefix and excluding HEAD).
+                for branch in $(git branch -r | sed 's/ *origin\///g' | grep -v "HEAD"); do
+                  echo "Processing branch: '$branch'"
+                  # Check if the branch name exists in the 'deleted' variable.
                   if [[ " $deleted " == *" $branch "* ]]; then
                     matching_branches="$matching_branches $branch"
+                    echo "Matched branch: '$branch'"
+                  else
+                    echo "Branch '$branch' did not match"
                   fi
                 done
-                echo "Matching branches for deletion: $matching_branches"
-                echo "::set-output name=branches::${matching_branches}"
+                echo "Final matching branches for deletion: '$matching_branches'"
+                echo "::set-output name=branches::$matching_branches"
 
             - name: Create branch for PR
               run: |

@@ -54,13 +54,13 @@ jobs:
                   fi
                 done
 
-            - name: Create branch for pull request
+            - name: Create branch for Pull Request
               run: |
                 git checkout -b delete-branches-${{ github.sha }}
                 git commit --allow-empty -m "Prepare PR for abandoned branch deletion"
                 git push origin delete-branches-${{ github.sha }}
 
-            - name: Create pull request for branch deletion
+            - name: Create Pull Request for branch deletion
               env:
                 GH_TOKEN: ${{ github.token }}
               run: |

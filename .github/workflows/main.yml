@@ -34,33 +34,20 @@ jobs:
                 git commit --allow-empty -m "Prepare PR for abandoned branch deletion"
                 git push origin delete-branches-${{ github.sha }}
 
-            - name: Create pull request for branch deletion with gh CLI
+            - name: Create pull request for branch deletion
               env:
                 GH_TOKEN: ${{ github.token }}
               run: |
-                # Convert single quotes to double quotes to create valid JSON
-                branches_json=$(echo '${{ steps.unused_branches.outputs.deleted_branches }}' | sed "s/'/\"/g")
-                
-                # Build a Markdown table header
-                table="| Branch Name | Last Commit Date | Last Commit Message | Last Updated |\n|-------------|------------------|---------------------|--------------|"
-                
-                # Iterate over each branch in the JSON array and append a row to the table
-                for branch in $(echo "$branches_json" | jq -r '.[]'); do
-                  # Replace "Unknown" with dynamic properties if available
-                  table="$table\n| $branch | Unknown | Unknown | Unknown |"
-                done
-                
-                # Build the pull request body combining the branch list and the table
-                pr_body="This pull request proposes to delete the following abandoned branches:
-
-                $branches_json
-
-                $table"
-                    
-                echo "$pr_body"  # Optional: print the PR body for debugging
                 gh pr create \
                   --title "Delete abandoned branches" \
-                  --body "$pr_body" \
+                  --body "This pull request proposes to delete the following abandoned branches:
+
+                  ${{ steps.unused_branches.outputs.deleted_branches }}
+                  | Branch Name | Last Commit Date | Last Commit Message | Last Updated |
+                  |-------------|------------------|---------------------|--------------|
+                  {% for branch in steps.unused_branches.outputs.deleted_branches %}
+                  | {{ branch.name }} | {{ branch.last_commit_date }} | {{ branch.last_commit_message }} | {{ branch.last_updated }} |
+                  {% endfor %}" \
                   --base main \
                   --head delete-branches-${{ github.sha }}
 

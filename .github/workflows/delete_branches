@@ -1,0 +1,25 @@
+name: Delete branches on PR merge
+
+on:
+    pull_request_review:
+        types: [submitted]
+
+jobs:
+    delete_branches:
+        if: github.event.review.state == 'approved' && contains(github.event.pull_request.title, 'Delete abandoned branches')
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+
+            - name: Delete branches on PR merge
+              id: delete_branches
+              uses: phpdocker-io/github-actions-delete-abandoned-branches@v2
+              with:
+                github_token: ${{ github.token }}
+                last_commit_age_days: 90
+                allowed_prefixes: 'delete/'
+                dry_run: yes
+
+            - name: Get output
+              run: "echo 'Deleted branches: ${{ steps.delete_branches.outputs.deleted_branches }}'"

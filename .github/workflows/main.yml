@@ -40,9 +40,8 @@ jobs:
                 echo "Branches JSON: $branches_json"
                 for branch in $(echo "$branches_json" | jq -r '.[]'); do
                   echo "Processing branch: $branch"
-                  git branch -m "$branch" "delete/$branch"
-                  git push origin --delete "$branch"
-                  git push origin "delete/$branch"
+                  git push origin $branch:refs/heads/delete/$branch
+                  git push origin --delete $branch
                 done
 
             - name: Create branch for PR

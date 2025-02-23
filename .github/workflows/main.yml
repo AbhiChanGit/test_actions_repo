@@ -88,7 +88,9 @@ jobs:
 
                 ### Branch Details
 
-                ${pr_table}"
+                ${pr_table}
+                
+                After pull request approval, you can delete the PR branch (delete-branches-${{ github.sha }}) to complete the process (this action will also close the pull request)."
                 
                 echo -e "$pr_body" > pr_body.txt
                 

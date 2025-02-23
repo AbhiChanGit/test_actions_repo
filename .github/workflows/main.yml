@@ -56,7 +56,7 @@ jobs:
               run: |
                 if [ -z "${{ steps.remote_branches.outputs.branches }}" ]; then
                   echo "No branches queued for deletion. Exiting workflow."
-                  exit 0
+                  exit 1
                 else
                   echo "Branches queued for deletion: ${{ steps.remote_branches.outputs.branches }}"
                 fi

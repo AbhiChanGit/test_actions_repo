@@ -66,17 +66,17 @@ jobs:
                 branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
                 
                 # Build a Markdown table with details of each branch.
-                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Commit link | Last Updated |\n|-------------|------------------|---------------------|-------------|--------------|"
+                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Commit link | Merged Status |\n|-------------|------------------|---------------------|-------------|--------------|"
                 for branch in $branches_to_delete; do
                   git checkout "$branch"
                   commit_date=$(git log -1 --format="%ci" "$branch" || echo "N/A")
                   commit_msg=$(git log -1 --format="%s" "$branch" || echo "N/A")
                   commit_hash=$(git log -1 --format="%H" "$branch" || echo "N/A")
-                  last_updated="$commit_date"
-                  pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${commit_hash} | ${last_updated} |"
+                  merged_status=$(git branch --merged main | findstr -q "$branch" && echo "true" || echo "false")
+                  pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${commit_hash} | ${merged_status} |"
                 done
                 
-                pr_body="This pull request proposes to delete the following abandoned branches:\n\n$branches_to_delete\n\n${pr_table}"
+                pr_body="This pull request proposes to delete the following abandoned branches:\n\n${pr_table}"
                 echo -e "$pr_body" > pr_body.txt
                 
                 gh pr create \

@@ -71,7 +71,7 @@ jobs:
                 for branch in $branches_to_delete; do
                   git checkout "$branch"
                   commit_date=$(git log -1 --format="%ci" "$branch" || echo "N/A")
-                  commit_msg=$(git log -1 "$branch" || echo "N/A")
+                  commit_msg=$(git log -1 --format="%s" "$branch" || echo "N/A")
                   last_updated="$commit_date"
                   pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${last_updated} |"
                 done

@@ -66,7 +66,7 @@ jobs:
                 branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
                 
                 # Build a Markdown table with details of each branch.
-                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Commit link | Last Updated |\n|-------------|------------------|---------------------|--------------|"
+                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Commit link | Last Updated |\n|-------------|------------------|---------------------|-------------|--------------|"
                 for branch in $branches_to_delete; do
                   git checkout "$branch"
                   commit_date=$(git log -1 --format="%ci" "$branch" || echo "N/A")

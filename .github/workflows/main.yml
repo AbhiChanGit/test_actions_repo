@@ -64,21 +64,20 @@ jobs:
               run: |
                 # Get the list of branches to be deleted from the remote array output.
                 branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
-                echo "Branches to delete (from output): $branches_to_delete"
                 
                 # Build a Markdown table with details of each branch.
-                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Last Updated |\n|-------------|------------------|---------------------|--------------|"
+                pr_table="| Branch Name | Last Commit Date | Last Commit Message | Commit link | Last Updated |\n|-------------|------------------|---------------------|--------------|"
                 for branch in $branches_to_delete; do
                   git checkout "$branch"
                   commit_date=$(git log -1 --format="%ci" "$branch" || echo "N/A")
                   commit_msg=$(git log -1 --format="%s" "$branch" || echo "N/A")
+                  commit_hash=$(git log -1 --format="%H" "$branch" || echo "N/A")
                   last_updated="$commit_date"
-                  pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${last_updated} |"
+                  pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${commit_hash} | ${last_updated} |"
                 done
                 
                 pr_body="This pull request proposes to delete the following abandoned branches:\n\n$branches_to_delete\n\n${pr_table}"
                 echo -e "$pr_body" > pr_body.txt
-                cat pr_body.txt  # For debugging; remove when confirmed.
                 
                 gh pr create \
                   --title "Delete abandoned branches" \
@@ -89,7 +88,6 @@ jobs:
             - name: Prefix branches with delete
               run: |
                 branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
-                echo "Branches to delete (from output): $branches_to_delete"
                 
                 for branch in $branches_to_delete; do
                   echo "Renaming branch: $branch -> delete/$branch"

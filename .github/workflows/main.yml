@@ -62,7 +62,7 @@ jobs:
               env:
                 GH_TOKEN: ${{ github.token }}
               run: |
-                # Get the list of branches to be deleted from the remote array output.
+               # Get the list of branches to be deleted from the remote array output.
                 branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
                 
                 # Build a Markdown table with details of each branch.
@@ -76,7 +76,20 @@ jobs:
                   pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${commit_hash} | ${merged_status} |"
                 done
                 
-                pr_body="This pull request proposes to delete the following abandoned branches:\n\n${pr_table}"
+                pr_body="This pull request identifies branches that are candidates for deletion.
+    
+                The branches listed below have been renamed by prefixing them with 'delete/'.
+
+                **Important:**
+                1) If you agree that these branches should be deleted, please **approve this pull request** and follow the instructions outlined [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews) to confirm deletion.
+                2) If there is a branch you wish to keep, simply rename that branch (remove the 'delete/' prefix) and then approve the pull request.
+
+                **Note: DO NOT MERGE THIS PULL REQUEST INTO main.**
+
+                ### Branch Details
+
+                ${pr_table}"
+                
                 echo -e "$pr_body" > pr_body.txt
                 
                 gh pr create \

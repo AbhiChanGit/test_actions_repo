@@ -52,6 +52,15 @@ jobs:
                 echo "Final matching branches for deletion: '$matching_branches'"
                 echo "::set-output name=branches::$matching_branches"
 
+            - name: Check branches for deletion
+              run: |
+                if [ -z "${{ steps.remote_branches.outputs.branches }}" ]; then
+                  echo "No branches queued for deletion. Exiting workflow."
+                  exit 0
+                else
+                  echo "Branches queued for deletion: ${{ steps.remote_branches.outputs.branches }}"
+                fi
+
             - name: Create branch for PR
               run: |
                 git checkout -b delete-branches-${{ github.sha }}

@@ -70,6 +70,7 @@ jobs:
                 pr_table="| Branch Name | Last Commit Date | Last Commit Message | Last Updated |\n|-------------|------------------|---------------------|--------------|"
                 for branch in $branches_to_delete; do
                   renamed_branch="delete/$branch"
+                  git checkout branch1
                   commit_date=$(git log -1 --format="%cd" branch1)
                   commit_msg=$(git log -1 --format="%s" branch1)
                   last_updated="$commit_date"

@@ -19,7 +19,7 @@ jobs:
                 github_token: ${{ github.token }}
                 last_commit_age_days: 0
                 allowed_prefixes: 'delete/'
-                dry_run: yes
+                dry_run: no
 
             - name: Get output
               run: "echo 'Deleted branches: ${{ steps.delete_branches.outputs.deleted_branches }}'"

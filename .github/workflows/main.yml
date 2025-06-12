@@ -107,7 +107,7 @@ jobs:
                   --title "Delete abandoned branches" \
                   --body "$(cat pr_body.txt)" \
                   --base main \
-                  --head delete-branches-${{ github.sha }}
+                  --head delete-branches-$(date +%s)
 
             - name: Prefix branches with delete
               run: |

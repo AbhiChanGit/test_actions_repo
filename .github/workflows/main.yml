@@ -65,7 +65,7 @@ jobs:
               run: |
                 git checkout -b delete-branches-$(date +%s)
                 git commit --allow-empty -m "Prepare PR for abandoned branch deletion"
-                git push origin delete-branches-${{ github.sha }}
+                git push origin delete-branches-$(date +%s)
 
             - name: Create pull request for branch deletion with gh CLI
               env:

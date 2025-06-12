@@ -19,7 +19,11 @@ jobs:
                 github_token: ${{ github.token }}
                 last_commit_age_days: 0
                 allowed_prefixes: 'delete/'
-                dry_run: no
+                dry_run: yes
 
             - name: Get output
               run: "echo 'Deleted branches: ${{ steps.delete_branches.outputs.deleted_branches }}'"
+              
+            - name: Delete the PR “cleanup” branch
+              run: |
+                git push origin --delete "${{ github.event.pull_request.head.ref }}"

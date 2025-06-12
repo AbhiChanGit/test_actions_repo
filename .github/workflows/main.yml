@@ -63,11 +63,11 @@ jobs:
 
             - name: Create branch for PR
               run: |
-                git checkout -b delete-branches-$(date +%s)
+                git checkout -b delete-branches
                 echo "This branch prepares abandoned branches for deletion." > DELETE_BRANCHES_INFO.md
                 git add DELETE_BRANCHES_INFO.md
                 git commit -m "Add branch deletion marker"
-                git push origin delete-branches-$(date +%s)
+                git push origin delete-branches
 
             - name: Create pull request for branch deletion with gh CLI
               env:
@@ -109,7 +109,7 @@ jobs:
                   --title "Delete abandoned branches" \
                   --body "$(cat pr_body.txt)" \
                   --base main \
-                  --head delete-branches-$(date +%s)
+                  --head delete-branches
 
             - name: Prefix branches with delete
               run: |

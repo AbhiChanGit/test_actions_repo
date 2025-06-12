@@ -64,7 +64,9 @@ jobs:
             - name: Create branch for PR
               run: |
                 git checkout -b delete-branches-$(date +%s)
-                git commit --allow-empty -m "Prepare PR for abandoned branch deletion"
+                echo "This branch prepares abandoned branches for deletion." > DELETE_BRANCHES_INFO.md
+                git add DELETE_BRANCHES_INFO.md
+                git commit -m "Add branch deletion marker"
                 git push origin delete-branches-$(date +%s)
 
             - name: Create pull request for branch deletion with gh CLI

@@ -75,15 +75,29 @@ jobs:
               run: |
                # Get the list of branches to be deleted from the remote array output.
                 branches_to_delete="${{ steps.remote_branches.outputs.branches }}"
-                
+
                 # Build a Markdown table with details of each branch.
                 pr_table="| Branch Name | Last Commit Date | Last Commit Message | Commit link | Merged Status |\n|-------------|------------------|---------------------|-------------|--------------|"
                 for branch in $branches_to_delete; do
+                  git fetch origin "$branch:$branch"
                   git checkout "$branch"
                   commit_date=$(git log -1 --format="%ci" "$branch" || echo "N/A")
                   commit_msg=$(git log -1 --format="%s" "$branch" || echo "N/A")
                   commit_hash=$(git log -1 --format="%H" "$branch" || echo "N/A")
-                  merged_status=$(git branch --merged main | findstr -q "$branch" && echo "true" || echo "false")
+                  
+                  if git merge-base --is-ancestor origin/$branch origin/main; then
+                    merge_commit=$(git log origin/main \
+                        --ancestry-path origin/$branch..origin/main \
+                        --merges --pretty=%H -1)
+                    if [ -n "$merge_commit" ]; then
+                      merged_status="true"
+                    else
+                      merged_status="fast-forward (no merge commit)"
+                    fi
+                  else
+                    merged_status="false"
+                  fi
+                  
                   pr_table="${pr_table}\n| ${branch} | ${commit_date} | ${commit_msg} | ${commit_hash} | ${merged_status} |"
                 done
                 
